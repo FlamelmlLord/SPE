@@ -1,12 +1,3 @@
-Elementos:
-- Avatar con iniciales
-- Nombre del usuario
-- Rol (Admin/Analista/Supervisor)
-- Opciones:
-  - Mi perfil
-  - Configuración
-  - Cerrar sesión
-
 
   'use client';
 

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integración | Sistema de Calidad de Datos</title>
+    <style>
+        /* Variables y estilos base heredados */
+        :root {
+            --color-primary-dark: #01033e;
+            --color-primary-light: #0033ff;
+            --color-background-soft: #f8f9fa;
+            --color-white: #ffffff;
+            --color-text-secondary: #6c757d;
+            --color-success: #4CAF50;
+            --color-error: #F44336;
+            --color-warning: #ffc107;
+            --font-family: Verdana, Geneva, Tahoma, sans-serif;
+            --chart-color-1: #807dfe;
+            --chart-color-2: #0033ff;
+            --chart-color-3: #9fbffc;
+        }
+
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 0;
+            background-color: var(--color-background-soft);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Estilos del Sidebar y Header (Iguales) */
+        .sidebar {
+            width: 250px; background-color: var(--color-primary-dark); color: var(--color-white); padding: 20px 0; flex-shrink: 0; display: flex; flex-direction: column; box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar-header {
+            text-align: center; padding: 0 20px 30px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 20px;
+        }
+        .logo-placeholder-sm {
+            display: block; width: 150px; height: 30px; margin: 0 auto 5px; background-image: url('logo-servicio-de-empleo.png'); background-size: contain; background-repeat: no-repeat; background-position: center; filter: invert(100%);
+        }
+        .sidebar h2 {
+            font-size: 1.1em; margin: 0; font-weight: 700;
+        }
+        .sidebar-nav a {
+            display: flex; align-items: center; padding: 12px 20px; color: var(--color-white); text-decoration: none; transition: background-color 0.2s, color 0.2s; font-size: 0.9em; border-left: 3px solid transparent;
+        }
+        .sidebar-nav a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-nav a.active {
+            background-color: rgba(0, 51, 255, 0.5); border-left-color: var(--color-primary-light); font-weight: bold;
+        }
+        .main-container {
+            flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto;
+        }
+        .header {
+            background-color: var(--color-white); padding: 15px 30px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); display: flex; justify-content: space-between; align-items: center;
+        }
+        .header h1 {
+            font-size: 1.5em; color: var(--color-primary-dark); margin: 0;
+        }
+        .content {
+            padding: 30px; flex-grow: 1;
+        }
+        
+        /* Layout de la Vista 4 */
+        .integration-grid {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 30px;
+        }
+
+        /* 1. Matriz de Mapeo */
+        .mapping-panel {
+            background-color: var(--color-white);
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+        .mapping-panel h3 {
+            margin-top: 0;
+            color: var(--color-primary-dark);
+        }
+
+        .mapping-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+            margin-top: 15px;
+        }
+        .mapping-table th, .mapping-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+        .mapping-table th {
+            background-color: #f4f4f4;
+            color: var(--color-primary-dark);
+            text-transform: uppercase;
+        }
+        .mapping-table select {
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: var(--font-family);
+        }
+        .join-type {
+            font-weight: bold;
+            color: var(--color-primary-light);
+        }
+        .add-row-button {
+            margin-top: 15px;
+            padding: 8px 12px;
+            background-color: var(--chart-color-7);
+            color: var(--color-white);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* 2. Métricas y Conexiones (Panel Lateral) */
+        .sidebar-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .match-card, .connection-card {
+            background-color: var(--color-white);
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .match-chart-container {
+            width: 100%;
+            height: 10px;
+            background-color: var(--chart-color-3);
+            border-radius: 5px;
+            margin-top: 10px;
+            display: flex;
+            overflow: hidden;
+        }
+        .match-rate-bar {
+            height: 100%;
+            background-color: var(--chart-color-2);
+        }
+        .match-legend {
+            font-size: 0.8em;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        /* Panel de Conexiones */
+        .connection-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed #eee;
+            font-size: 0.9em;
+            color: var(--color-primary-dark);
+        }
+        .connection-status {
+            font-weight: bold;
+            color: var(--color-success);
+        }
+
+        /* Botón de Ejecución */
+        .execute-integration-button {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--color-primary-light);
+            color: var(--color-white);
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .execute-integration-button:hover {
+            background-color: var(--color-primary-dark);
+        }
+        
+        /* Estilos del Modal */
+        .modal {
+            display: none; /* Oculto por defecto */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: var(--color-white);
+            margin: 15% auto; /* 15% desde arriba y centrado */
+            padding: 25px;
+            border-radius: 8px;
+            width: 500px; 
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .modal-content h3 {
+            color: var(--color-primary-dark);
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .modal-content input[type="text"], .modal-content input[type="password"] {
+            width: 96%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .close-button, .save-modal-button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .close-button {
+            background-color: #ccc;
+            color: var(--color-primary-dark);
+        }
+        .save-modal-button {
+            background-color: var(--color-primary-light);
+            color: var(--color-white);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-placeholder-sm"></div>
+            <h2>Sistema de Calidad</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard">📊 Dashboard</a>
+            <a href="/dashboard/datos-crudos">1. Datos Crudos (Duplicidad)</a>
+            <a href="/dashboard/normalizacion">2. Normalización (Reglas)</a>
+            <a href="/dashboard/integracion" class="active">3. Integración de Fuentes</a>
+            <a href="/dashboard/alistamiento">4. Alistamiento (Edición)</a>
+            <a href="/dashboard/anonimizacion">5. Anonimización</a>
+            <a href="/dashboard/usuarios">⚙️ Gestión Usuarios</a>
+        </nav>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="header">
+            <h1>3. Integración y Enriquecimiento de Datos</h1>
+            <div class="user-menu">
+                Funcionario A. (Programador Backend)
+            </div>
+        </div>
+
+        <div class="content">
+
+            <div class="integration-grid">
+                
+                <div class="mapping-panel">
+                    <h3>Definición de Mapeo y Puntos de Integración</h3>
+                    <p style="font-size: 0.85em; color: var(--color-text-secondary);">
+                        Defina los criterios de unión para enriquecer los **Datos Validados (Vacantes)** con Fuentes de Referencia.
+                    </p>
+                    
+                    <table class="mapping-table">
+                        <thead>
+                            <tr>
+                                <th>Fuente Principal (Vacantes)</th>
+                                <th>Tipo de Integración</th>
+                                <th>Fuente de Referencia</th>
+                                <th>Campos a Añadir</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>**nit_prestador** (NIT de la Empresa)</td>
+                                <td><span class="join-type">MERGE QUERY</span></td>
+                                <td>
+                                    <select>
+                                        <option selected>**Terceros_DIAN**</option>
+                                        <option>Clasificación_CIIU</option>
+                                        <option>Georreferenciación_DANE</option>
+                                    </select>
+                                </td>
+                                <td>dv, razon_social, estado</td>
+                                <td><button style="color: var(--color-error); border: none; background: transparent; cursor: pointer;">Eliminar</button></td>
+                            </tr>
+                            <tr>
+                                <td>**cod_ciudad** (Código DANE)</td>
+                                <td><span class="join-type">MERGE QUERY</span></td>
+                                <td>
+                                    <select>
+                                        <option>Terceros_DIAN</option>
+                                        <option>Clasificación_CIIU</option>
+                                        <option selected>**Georreferenciación_DANE**</option>
+                                    </select>
+                                </td>
+                                <td>nombre_depto, zona</td>
+                                <td><button style="color: var(--color-error); border: none; background: transparent; cursor: pointer;">Eliminar</button></td>
+                            </tr>
+                             <tr>
+                                <td>**cod_ciiu** (Código Vacante)</td>
+                                <td><span class="join-type">MERGE QUERY</span></td>
+                                <td>
+                                    <select>
+                                        <option>Terceros_DIAN</option>
+                                        <option selected>**Clasificación_CIIU**</option>
+                                        <option>Georreferenciación_DANE</option>
+                                    </select>
+                                </td>
+                                <td>desc_sector</td>
+                                <td><button style="color: var(--color-error); border: none; background: transparent; cursor: pointer;">Eliminar</button></td>
+                            </tr>
+                            <tr>
+                                <td>**id_oferente** (ID del Usuario)</td>
+                                <td><span class="join-type">INNER JOIN</span></td>
+                                <td>
+                                    <select>
+                                        <option>**Base_Interna_Usuarios**</option>
+                                    </select>
+                                </td>
+                                <td>tipo_contrato, nivel_acceso</td>
+                                <td><button style="color: var(--color-error); border: none; background: transparent; cursor: pointer;">Eliminar</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <button class="add-row-button">+ Añadir Criterio de Mapeo</button>
+                    
+                    <button class="execute-integration-button">EJECUTAR INTEGRACIÓN Y ENRIQUECIMIENTO DE DATOS</button>
+                </div>
+
+                <div class="sidebar-panel">
+                    
+                    <div class="match-card">
+                        <h3>Tasa de Éxito de Match Promedio</h3>
+                        <p style="font-size: 2em; color: var(--color-primary-dark); font-weight: bold; margin: 0;">90.5%</p>
+                        
+                        <div class="match-chart-container">
+                            <div class="match-rate-bar" style="width: 90.5%;"></div>
+                        </div>
+                        
+                        <div class="match-legend">
+                            <span>**Match:** 690,000 registros</span>
+                            <span style="color: var(--color-error);">**No Match:** 72,000 registros</span>
+                        </div>
+                    </div>
+
+                    <div class="connection-card">
+                        <h3>Estado de Conexiones Externas</h3>
+                        <div class="connection-item">
+                            <span>API DIAN (Validación NIT)</span>
+                            <span class="connection-status" style="color: var(--color-success);">Conectado</span>
+                        </div>
+                        <div class="connection-item">
+                            <span>Servicio Web DANE</span>
+                            <span class="connection-status" style="color: var(--color-error);">Desconectado</span>
+                        </div>
+                        <div class="connection-item">
+                            <span>BD Clasificación CIIU</span>
+                            <span class="connection-status" style="color: var(--color-success);">Conectado</span>
+                        </div>
+                        <button id="openModalBtn" style="width: 100%; padding: 8px; margin-top: 10px; border: 1px solid #ccc; background: #f9f9f9; border-radius: 4px; font-size: 0.9em; cursor: pointer;">Gestionar Credenciales</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    <div id="credentialsModal" class="modal">
+        <div class="modal-content">
+            <h3>🔑 Gestionar Credenciales de Conexión</h3>
+
+            <label for="dian-user">Usuario API DIAN:</label>
+            <input type="text" id="dian-user" value="servicio_spe_api">
+
+            <label for="dian-pass">Contraseña API DIAN:</label>
+            <input type="password" id="dian-pass" value="••••••••">
+            
+            <label for="dane-user">URL Servicio Web DANE:</label>
+            <input type="text" id="dane-user" value="https://api.dane.gov.co/v1/geo">
+            
+            <div class="modal-footer">
+                <button id="closeModalBtn" class="close-button">Cerrar</button>
+                <button class="save-modal-button">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('openModalBtn').onclick = function() {
+            document.getElementById('credentialsModal').style.display = 'block';
+        }
+
+        document.getElementById('closeModalBtn').onclick = function() {
+            document.getElementById('credentialsModal').style.display = 'none';
+        }
+
+        // Cierra el modal si el usuario hace clic fuera de él
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('credentialsModal')) {
+                document.getElementById('credentialsModal').style.display = 'none';
+            }
+        }
+    </script>
+
+</body>
+</html>

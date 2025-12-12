@@ -1,7 +1,3 @@
-Elementos:
-- Breadcrumbs (Dashboard > Datos Crudos)
-- Título de la vista actual
-- Acciones rápidas (botones)
 
 'use client';
 

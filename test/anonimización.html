@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonimización | Sistema de Calidad de Datos</title>
+    <style>
+        /* Variables y estilos base heredados */
+        :root {
+            --color-primary-dark: #01033e;
+            --color-primary-light: #0033ff;
+            --color-background-soft: #f8f9fa;
+            --color-white: #ffffff;
+            --color-text-secondary: #6c757d;
+            --color-success: #4CAF50;
+            --color-error: #F44336;
+            --color-warning: #ffc107;
+            --font-family: Verdana, Geneva, Tahoma, sans-serif;
+            --color-risk-low: #4CAF50;    
+            --color-risk-medium: #ffc107; 
+            --color-risk-high: #F44336;   
+            --color-sensitive: #e0f7fa;   /* Fondo azul claro para IIP */
+        }
+
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 0;
+            background-color: var(--color-background-soft);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Estilos del Sidebar y Header (Iguales) */
+        .sidebar {
+            width: 250px; background-color: var(--color-primary-dark); color: var(--color-white); padding: 20px 0; flex-shrink: 0; display: flex; flex-direction: column; box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar-header {
+            text-align: center; padding: 0 20px 30px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 20px;
+        }
+        .logo-placeholder-sm {
+            display: block; width: 150px; height: 30px; margin: 0 auto 5px; background-image: url('logo-servicio-de-empleo.png'); background-size: contain; background-repeat: no-repeat; background-position: center; filter: invert(100%);
+        }
+        .sidebar h2 {
+            font-size: 1.1em; margin: 0; font-weight: 700;
+        }
+        .sidebar-nav a {
+            display: flex; align-items: center; padding: 12px 20px; color: var(--color-white); text-decoration: none; transition: background-color 0.2s, color 0.2s; font-size: 0.9em; border-left: 3px solid transparent;
+        }
+        .sidebar-nav a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-nav a.active {
+            background-color: rgba(0, 51, 255, 0.5); border-left-color: var(--color-primary-light); font-weight: bold;
+        }
+        .main-container {
+            flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto;
+        }
+        .header {
+            background-color: var(--color-white); padding: 15px 30px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); display: flex; justify-content: space-between; align-items: center;
+        }
+        .header h1 {
+            font-size: 1.5em; color: var(--color-primary-dark); margin: 0;
+        }
+        .content {
+            padding: 30px; flex-grow: 1;
+        }
+        
+        /* Layout de la Vista 6 */
+        .anon-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr; 
+            gap: 30px;
+        }
+
+        /* 1. Matriz de Políticas */
+        .policy-panel {
+            background-color: var(--color-white);
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+        .policy-panel h3 {
+            margin-top: 0;
+            color: var(--color-primary-dark);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .policy-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+        .policy-table th, .policy-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+        .policy-table th {
+            background-color: #f4f4f4;
+            color: var(--color-primary-dark);
+            text-transform: uppercase;
+        }
+        .policy-table select {
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: var(--font-family);
+            width: 95%;
+        }
+        /* Resalta IIP */
+        .sensitive-field {
+            font-weight: bold;
+            color: var(--color-error);
+            background-color: var(--color-sensitive);
+        }
+        /* Resalta QD */
+        .quasid {
+            background-color: #ffe0b2; 
+        }
+        /* Resalta AD */
+        .delicate {
+            background-color: #f8e0fa;
+        }
+        
+        /* 2. Métricas de Riesgo y Visualización */
+        .sidebar-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .risk-card, .preview-card {
+            background-color: var(--color-white);
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Indicador de Riesgo */
+        .risk-indicator {
+            text-align: center;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+        
+        .risk-low { background-color: var(--color-risk-low); color: var(--color-white); }
+        .risk-medium { background-color: var(--color-risk-medium); color: var(--color-primary-dark); }
+        .risk-high { background-color: var(--color-risk-high); color: var(--color-white); }
+        
+        /* Previsualización de Anonimización */
+        .preview-data {
+            font-size: 0.8em;
+            overflow-x: auto;
+        }
+        .preview-data table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .preview-data th, .preview-data td {
+            padding: 8px;
+            border: 1px solid #eee;
+        }
+        .anon-value {
+            color: var(--color-success);
+            font-style: italic;
+        }
+
+        /* Botón de Ejecución Final */
+        .execute-anon-button {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--color-success);
+            color: var(--color-white);
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .execute-anon-button:hover {
+            background-color: #388e3c;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-placeholder-sm"></div>
+            <h2>Sistema de Calidad</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard">📊 Dashboard</a>
+            <a href="/dashboard/datos-crudos">1. Datos Crudos (Duplicidad)</a>
+            <a href="/dashboard/normalizacion">2. Normalización (Reglas)</a>
+            <a href="/dashboard/integracion">3. Integración de Fuentes</a>
+            <a href="/dashboard/alistamiento">4. Alistamiento (Edición)</a>
+            <a href="/dashboard/anonimizacion" class="active">5. Anonimización y Privacidad</a>
+            <a href="/dashboard/usuarios">⚙️ Gestión Usuarios</a>
+        </nav>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="header">
+            <h1>5. Anonimización y Generación de Dataset Seguro</h1>
+            <div class="user-menu">
+                Funcionario A. (Oficial de Privacidad)
+            </div>
+        </div>
+
+        <div class="content">
+
+            <div class="anon-grid">
+                
+                <div class="policy-panel">
+                    <h3>Matriz de Políticas de Anonimización (Identificadores y Quasidocumentos)</h3>
+                    <p style="font-size: 0.8em; color: var(--color-text-secondary);">
+                        IIP: Identificador personal | QD: Quasidocumento | AD: Atributo Delicado.
+                    </p>
+                    
+                    <table class="policy-table">
+                        <thead>
+                            <tr>
+                                <th>Campo (Tipo)</th>
+                                <th>Método de Anonimización</th>
+                                <th>Parámetros</th>
+                                <th>Nivel de Sensibilidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="4" style="background-color: #f0f0f0; font-weight: bold;">GRUPO I: IDENTIFICACIÓN Y CONTACTO (IIP)</td></tr>
+                            <tr>
+                                <td class="sensitive-field">num_documento (IIP)</td>
+                                <td>
+                                    <select>
+                                        <option selected>Pseudonimización (Tokenización)</option>
+                                        <option>Supresión Total</option>
+                                    </select>
+                                </td>
+                                <td>Tabla de Mapeo Interno</td>
+                                <td>Alto</td>
+                            </tr>
+                            <tr>
+                                <td class="sensitive-field">tipo_documento (IIP)</td>
+                                <td>
+                                    <select>
+                                        <option selected>Generalización Jerárquica</option>
+                                        <option>Supresión Total</option>
+                                    </select>
+                                </td>
+                                <td>Agregación: **CC/TI/CE** -> **Nacional** | **Otros** -> **Extranjero**</td>
+                                <td>Medio</td>
+                            </tr>
+                            <tr>
+                                <td class="sensitive-field">nombre_completo (IIP)</td>
+                                <td>
+                                    <select>
+                                        <option selected>Supresión Total (Eliminar)</option>
+                                        <option>Pseudonimización</option>
+                                    </select>
+                                </td>
+                                <td>N/A</td>
+                                <td>Alto</td>
+                            </tr>
+                            <tr>
+                                <td class="sensitive-field">email_contacto (IIP)</td>
+                                <td>
+                                    <select>
+                                        <option selected>Sustitución (Dominio Falso)</option>
+                                        <option>Supresión Total</option>
+                                    </select>
+                                </td>
+                                <td>ej: usuario@**dominio.anom**</td>
+                                <td>Alto</td>
+                            </tr>
+
+                            <tr><td colspan="4" style="background-color: #f0f0f0; font-weight: bold;">GRUPO II: QUASI-IDENTIFICADORES (QD)</td></tr>
+                            <tr>
+                                <td class="quasid">fecha_nacimiento (QD)</td>
+                                <td>
+                                    <select>
+                                        <option selected>Generalización (Rango Edad)</option>
+                                        <option>Supresión Total</option>
+                                    </select>
+                                </td>
+                                <td>Rango de Edad: **18-25**, **26-35**, **36-45**, etc.</td>
+                                <td>Medio</td>
+                            </tr>
+                            <tr>
+                                <td class="quasid">cod_ciudad_residencia (QD)</td>
+                                <td>
+                                    <select>
+                                        <option>Generalización (Nivel Depto)</option>
+                                        <option selected>Generalización (Clúster Poblacional)</option>
+                                    </select>
+                                </td>
+                                <td>Agregación por **Clúster Urbano/Rural**</td>
+                                <td>Bajo</td>
+                            </tr>
+                            <tr>
+                                <td class="quasid">cargo_anterior (QD)</td>
+                                <td>
+                                    <select>
+                                        <option selected>Generalización (Nivel CIIU 2 dígitos)</option>
+                                        <option>Supresión</option>
+                                    </select>
+                                </td>
+                                <td>Agregación por **Grupo Sectorial** (ej: 47 -> Comercio al por menor)</td>
+                                <td>Medio</td>
+                            </tr>
+
+                            <tr><td colspan="4" style="background-color: #f0f0f0; font-weight: bold;">GRUPO III: ATRIBUTOS DELICADOS (AD)</td></tr>
+                            <tr>
+                                <td class="delicate">salario_actual (AD)</td>
+                                <td>
+                                    <select>
+                                        <option selected>Generalización (Rango Monetario)</option>
+                                        <option>Perturbación (Adición de Ruido)</option>
+                                    </select>
+                                </td>
+                                <td>Rangos: [$0-2M], [$2M-5M], etc.</td>
+                                <td>Medio</td>
+                            </tr>
+                            <tr>
+                                <td class="delicate">estado_afiliacion (AD)</td>
+                                <td>
+                                    <select>
+                                        <option selected>Supresión (Por Inutilidad Analítica)</option>
+                                        <option>Generalización</option>
+                                    </select>
+                                </td>
+                                <td>N/A</td>
+                                <td>Bajo</td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="sidebar-panel">
+                    
+                    <div class="risk-card">
+                        <h3>Riesgo de Re-identificación Agregado (K-Anonimato)</h3>
+                        
+                        <div class="risk-indicator risk-medium">
+                            Riesgo Moderado (4.2%)
+                        </div>
+                        
+                        <p style="font-size: 0.9em; color: var(--color-text-secondary); text-align: center;">
+                            K=3. El **95.8%** de los registros se agrupan con al menos 3 registros idénticos (dado el conjunto de Cuasi-Identificadores).
+                        </p>
+                        <hr style="border-top: 1px solid #eee;">
+                        <p style="font-size: 0.8em; font-weight: bold; color: var(--color-primary-dark);">
+                            Umbral de Aceptación Máximo: <span style="float: right;">5.0%</span>
+                        </p>
+                    </div>
+
+                    <div class="preview-card">
+                        <h3>Previsualización de Datos (Ejemplo)</h3>
+                        <div class="preview-data">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>num_documento</th>
+                                        <th>tipo_documento</th>
+                                        <th>fecha_nacimiento</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Original: 1010123456</td>
+                                        <td>Original: Cédula de Ciudadania</td>
+                                        <td>Original: 1995-04-10</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="anon-value">Anon: <code>TKN-783b9e</code></td>
+                                        <td class="anon-value">Anon: Nacional</td>
+                                        <td class="anon-value">Anon: Edad (26-35)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <button class="execute-anon-button">EJECUTAR ANONIMIZACIÓN Y GENERAR DATASET FINAL</button>
+                    
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

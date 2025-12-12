@@ -1,60 +1,13 @@
-
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
-import {
-  LayoutDashboard,
-  Database,
-  CheckCircle,
-  GitMerge,
-  FileEdit,
-  Shield,
-  Users,
-  LogOut,
-} from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-
-const navigationItems = [
-  {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: LayoutDashboard,
-  },
-  {
-    title: '1. Datos Crudos',
-    href: '/dashboard/datos-crudos',
-    icon: Database,
-  },
-  {
-    title: '2. Normalización',
-    href: '/dashboard/normalizacion',
-    icon: CheckCircle,
-  },
-  {
-    title: '3. Integración',
-    href: '/dashboard/integracion',
-    icon: GitMerge,
-  },
-  {
-    title: '4. Alistamiento',
-    href: '/dashboard/alistamiento',
-    icon: FileEdit,
-  },
-  {
-    title: '5. Anonimización',
-    href: '/dashboard/anonimizacion',
-    icon: Shield,
-  },
-  {
-    title: 'Usuarios',
-    href: '/dashboard/usuarios',
-    icon: Users,
-  },
-];
+import { navigationItems } from '@/lib/constants/navigation';
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -124,7 +77,6 @@ export function Sidebar() {
           variant="ghost"
           className="w-full justify-start text-white/70 hover:text-white hover:bg-white/5"
           onClick={() => {
-            // TODO: Implementar logout
             window.location.href = '/auth/login';
           }}
         >

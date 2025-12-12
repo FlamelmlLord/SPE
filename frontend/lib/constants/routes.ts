@@ -9,6 +9,7 @@ export const ROUTES = {
   INTEGRACION: '/dashboard/integracion',
   ALISTAMIENTO: '/dashboard/alistamiento',
   ANONIMIZACION: '/dashboard/anonimizacion',
+  EDITOR_FLUJOS: '/dashboard/editor-flujos', 
   
   // Usuarios
   USUARIOS: '/dashboard/usuarios',

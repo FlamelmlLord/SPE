@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alistamiento | Sistema de Calidad de Datos</title>
+    <style>
+        /* Variables y estilos base heredados */
+        :root {
+            --color-primary-dark: #01033e;
+            --color-primary-light: #0033ff;
+            --color-background-soft: #f8f9fa;
+            --color-white: #ffffff;
+            --color-text-secondary: #6c757d;
+            --color-success: #4CAF50;
+            --color-error: #F44336;
+            --color-warning: #ffc107;
+            --font-family: Verdana, Geneva, Tahoma, sans-serif;
+            --chart-color-1: #807dfe;
+            --chart-color-2: #0033ff;
+            --chart-color-3: #9fbffc;
+            --color-danger-light: #fbe6e6; /* Fondo para celdas con error */
+            --color-edit-focus: #fff3cd; /* Fondo para celdas editables */
+        }
+
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 0;
+            background-color: var(--color-background-soft);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Estilos del Sidebar y Header (Iguales) */
+        .sidebar {
+            width: 250px; background-color: var(--color-primary-dark); color: var(--color-white); padding: 20px 0; flex-shrink: 0; display: flex; flex-direction: column; box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar-header {
+            text-align: center; padding: 0 20px 30px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 20px;
+        }
+        .logo-placeholder-sm {
+            display: block; width: 150px; height: 30px; margin: 0 auto 5px; background-image: url('logo-servicio-de-empleo.png'); background-size: contain; background-repeat: no-repeat; background-position: center; filter: invert(100%);
+        }
+        .sidebar h2 {
+            font-size: 1.1em; margin: 0; font-weight: 700;
+        }
+        .sidebar-nav a {
+            display: flex; align-items: center; padding: 12px 20px; color: var(--color-white); text-decoration: none; transition: background-color 0.2s, color 0.2s; font-size: 0.9em; border-left: 3px solid transparent;
+        }
+        .sidebar-nav a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-nav a.active {
+            background-color: rgba(0, 51, 255, 0.5); border-left-color: var(--color-primary-light); font-weight: bold;
+        }
+        .main-container {
+            flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto;
+        }
+        .header {
+            background-color: var(--color-white); padding: 15px 30px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); display: flex; justify-content: space-between; align-items: center;
+        }
+        .header h1 {
+            font-size: 1.5em; color: var(--color-primary-dark); margin: 0;
+        }
+        .content {
+            padding: 30px; flex-grow: 1;
+        }
+        
+        /* Layout de la Vista 5 */
+        .alistamiento-grid {
+            display: grid;
+            grid-template-columns: 3fr 1fr; 
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        /* 1. Dashboard de Fallos (Parte superior) */
+        .fail-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .fail-card {
+            background-color: var(--color-white);
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid var(--color-error);
+        }
+        .fail-card h3 {
+            font-size: 0.85em;
+            color: var(--color-text-secondary);
+            margin-top: 0;
+        }
+        .fail-card p {
+            font-size: 1.8em;
+            color: var(--color-error);
+            font-weight: bold;
+            margin: 0;
+        }
+
+        /* 2. Tabla de Edición Activa */
+        .table-panel {
+            grid-column: span 2;
+            background-color: var(--color-white);
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+        
+        .table-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .table-toolbar select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: var(--font-family);
+        }
+        
+        /* Estilos de la Tabla de Edición */
+        .editing-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8em;
+        }
+        .editing-table th, .editing-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+        .editing-table th {
+            background-color: #f4f4f4;
+            color: var(--color-primary-dark);
+            text-transform: uppercase;
+        }
+        
+        /* Resaltado de fallos y ediciones */
+        .editing-table td.fail-norm, .editing-table td.fail-int {
+            background-color: var(--color-danger-light);
+            font-weight: bold;
+            position: relative;
+        }
+        .editing-table td input[type="text"] {
+            padding: 5px;
+            border: 1px solid var(--color-primary-light);
+            border-radius: 3px;
+            background-color: var(--color-edit-focus);
+            width: 90%;
+            box-sizing: border-box;
+            font-family: var(--font-family);
+        }
+        .editing-table td.fail-norm::after {
+            content: "⚠️";
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.9em;
+            cursor: help;
+        }
+
+        /* 3. Panel de Contexto y Imputación (Columna Derecha) */
+        .context-panel {
+            grid-column: 2 / 3;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .imputation-card {
+            background-color: var(--color-white);
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .imputation-card h3 {
+            font-size: 1em;
+            color: var(--color-primary-dark);
+            margin-top: 0;
+        }
+        
+        /* Simulación de Histograma */
+        .histogram {
+            width: 100%;
+            height: 100px;
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            border-bottom: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        .bar {
+            flex-grow: 1;
+            background-color: var(--chart-color-2);
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .bar:hover {
+            background-color: var(--color-primary-light);
+        }
+        .outlier-bar {
+            background-color: var(--color-error);
+            border: 1px solid var(--color-error);
+        }
+        
+        .imputation-controls {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 0.85em;
+        }
+        .imputation-controls button {
+            padding: 8px;
+            background-color: var(--color-success);
+            color: var(--color-white);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .imputation-stats {
+            margin-top: 10px;
+            font-size: 0.8em;
+            color: var(--color-text-secondary);
+        }
+
+        /* Botón Final de Guardado */
+        .save-changes-button {
+            padding: 15px;
+            background-color: var(--color-primary-light);
+            color: var(--color-white);
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 20px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-placeholder-sm"></div>
+            <h2>Sistema de Calidad</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard">📊 Dashboard</a>
+            <a href="/dashboard/datos-crudos">1. Datos Crudos (Duplicidad)</a>
+            <a href="/dashboard/normalizacion">2. Normalización (Reglas)</a>
+            <a href="/dashboard/integracion">3. Integración de Fuentes</a>
+            <a href="/dashboard/alistamiento" class="active">4. Alistamiento (Edición)</a>
+            <a href="/dashboard/anonimizacion">5. Anonimización</a>
+            <a href="/dashboard/usuarios">⚙️ Gestión Usuarios</a>
+        </nav>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="header">
+            <h1>4. Alistamiento y Curación Manual de Datos Atípicos</h1>
+            <div class="user-menu">
+                Funcionario A. (Programador Backend)
+            </div>
+        </div>
+
+        <div class="content">
+
+            <div class="fail-summary-grid">
+                <div class="fail-card">
+                    <h3>Registros Fallidos (Normalización)</h3>
+                    <p>65,200</p>
+                    <span style="color: var(--color-error); font-size: 0.8em;">**Salario:** 14.8%</span>
+                </div>
+                <div class="fail-card">
+                    <h3>Registros Fallidos (Integración)</h3>
+                    <p>72,000</p>
+                    <span style="color: var(--color-error); font-size: 0.8em;">**Match DIAN:** 4.7%</span>
+                </div>
+                <div class="fail-card" style="border-left-color: var(--color-warning);">
+                    <h3>Vacantes con Missing Values</h3>
+                    <p>8,100</p>
+                    <span style="color: var(--color-warning); font-size: 0.8em;">**Categoría:** 1.1%</span>
+                </div>
+                <div class="fail-card" style="border-left-color: var(--color-success);">
+                    <h3>Registros Corregidos (Sesión)</h3>
+                    <p>35</p>
+                    <span style="color: var(--color-success); font-size: 0.8em;">Guardar para aplicar cambios</span>
+                </div>
+            </div>
+
+            <div class="alistamiento-grid">
+                
+                <div class="table-panel">
+                    <div class="table-toolbar">
+                        <h3>Filtro Activo: Registros Fallidos por Normalización</h3>
+                        <select>
+                            <option selected>Fallo: Salario Mínimo (65,200)</option>
+                            <option>Fallo: NIT sin Match DIAN (72,000)</option>
+                            <option>Fallo: Fecha Antigüedad (&gt;60 días)</option>
+                            <option>Missing Value: Categoría</option>
+                        </select>
+                    </div>
+
+                    <table class="editing-table">
+                        <thead>
+                            <tr>
+                                <th>ID Reg.</th>
+                                <th>Fecha Fallo</th>
+                                <th>Campo Crítico</th>
+                                <th>Valor Reportado</th>
+                                <th>Valor Corregido</th>
+                                <th>Motivo / Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>V-45123</td>
+                                <td>2025-11-25</td>
+                                <td>salario_ofrecido</td>
+                                <td class="fail-norm">$500,000</td>
+                                <td><input type="text" value="$1,300,000"></td>
+                                <td>**Imputado por Media.** *Error de tipeo, se corrige al mínimo legal.*</td>
+                            </tr>
+                            <tr>
+                                <td>V-45124</td>
+                                <td>2025-11-25</td>
+                                <td>nit_prestador</td>
+                                <td class="fail-int">900.234.XXX</td>
+                                <td><input type="text" value="900.234.900"></td>
+                                <td>**Corrección Manual.** *Dígito de verificación faltante, validado en portal.*</td>
+                            </tr>
+                            <tr>
+                                <td>V-45125</td>
+                                <td>2025-11-25</td>
+                                <td>antiguedad</td>
+                                <td class="fail-norm">450 días</td>
+                                <td><input type="text" value="90 días"></td>
+                                <td>**Marcar como Obsoleto (Eliminar).** *Vacante de 2024. Se imputa fecha de cierre.*</td>
+                            </tr>
+                            <tr>
+                                <td>V-45126</td>
+                                <td>2025-11-25</td>
+                                <td>categoria_vacante</td>
+                                <td class="fail-int">NULL</td>
+                                <td><input type="text" value="Recursos Humanos"></td>
+                                <td>**Imputado por Moda.** *Se aplica la categoría más frecuente para esta empresa.*</td>
+                            </tr>
+                            <tr>
+                                <td>V-45127</td>
+                                <td>2025-11-25</td>
+                                <td>salario_ofrecido</td>
+                                <td>$30,000,000</td>
+                                <td><input type="text" value="Marcar Atípico"></td>
+                                <td>**Atípico Válido.** *Es un salario real de gerencia. Se marca para evitar el filtro.*</td>
+                            </tr>
+                            <tr>
+                                <td colspan="6" style="text-align: right; font-size: 0.8em; color: var(--color-text-secondary);">
+                                    Mostrando 1-20 de 65,200 fallos activos.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="context-panel">
+                    
+                    <div class="imputation-card">
+                        <h3>Contexto Estadístico (Campo: Salario Ofrecido)</h3>
+                        
+                        <div class="histogram">
+                            <div class="bar" style="height: 20px;"></div>
+                            <div class="bar" style="height: 35px;"></div>
+                            <div class="bar" style="height: 70px;"></div>
+                            <div class="bar" style="height: 100px;"></div>
+                            <div class="bar" style="height: 80px;"></div>
+                            <div class="bar" style="height: 50px;"></div>
+                            <div class="bar" style="height: 30px;"></div>
+                            <div class="bar" style="height: 25px;"></div>
+                            <div class="bar" style="height: 15px;"></div>
+                            <div class="bar outlier-bar" style="height: 5px;" title="Atípico: $30M"></div>
+                            <div class="bar" style="height: 10px;"></div>
+                        </div>
+
+                        <div class="imputation-stats">
+                            <p><strong>Media Global:</strong> $1,650,000 | <strong>Mediana:</strong> $1,300,000</p>
+                        </div>
+                        
+                        <div class="imputation-controls">
+                            <label>Aplicar a todas las filas seleccionadas:</label>
+                            <button>Imputar con Mediana ($1,300,000)</button>
+                            <button style="background-color: var(--color-warning);">Marcar como Atípico Válido (Ignorar Regla)</button>
+                        </div>
+                    </div>
+
+                    <button class="save-changes-button">GUARDAR 35 CAMBIOS Y CONTINUAR AL FLUJO FINAL</button>
+                    
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

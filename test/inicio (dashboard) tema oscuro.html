@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Sistema de Calidad de Datos</title>
+    <style>
+        /* Variables de Tema Oscuro */
+        :root {
+            --color-primary-dark: #0033ff; /* Azul brillante (Acento/Éxito) */
+            --color-primary-light: #0033ff; /* Mantener para consistencia de acento */
+            --color-background-main: #01033e; /* Fondo principal (casi negro) */
+            --color-background-panel: #0d1736; /* Fondo de tarjetas/sidebar */
+            --color-white: #ffffff; /* Blanco puro */
+            --color-text-primary: var(--color-white); /* Texto principal */
+            --color-text-secondary: #d4d6e2; /* Texto secundario */
+            --color-border-subtle: #203a74; /* Bordes y separadores sutiles */
+            --color-success: #4CAF50;
+            --color-error: #F44336;
+            --color-warning: #ffc107;
+            --font-family: Verdana, Geneva, Tahoma, sans-serif;
+
+            /* Paleta monocromática para gráficos */
+            --chart-color-1: #807dfe; /* Azul-violeta claro */
+            --chart-color-2: #0033ff; /* Azul vibrante */
+            --chart-color-3: #9fbffc; /* Azul cielo claro */
+            --chart-color-4: #1a2a53; /* Azul oscuro para gráficos */
+            --chart-color-5: #6b64d0; /* Azul medio */
+            --chart-color-6: #3e4492; /* Azul oscuro */
+            --chart-color-7: #2d5a6b; /* Verde azulado oscuro */
+        }
+
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 0;
+            background-color: var(--color-background-main); /* Fondo principal oscuro */
+            color: var(--color-text-primary); /* Texto principal blanco */
+            display: flex;
+            height: 100vh;
+            overflow: hidden; 
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--color-background-panel); /* Sidebar oscuro */
+            color: var(--color-white);
+            padding: 20px 0;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .sidebar-header {
+            text-align: center;
+            padding: 0 20px 30px;
+            border-bottom: 1px solid var(--color-border-subtle);
+            margin-bottom: 20px;
+        }
+
+        .logo-placeholder-sm {
+            display: block;
+            width: 150px;
+            height: 30px;
+            margin: 0 auto 5px;
+            background-image: url('logo-servicio-de-empleo.png'); 
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            filter: invert(100%);
+        }
+
+        .sidebar h2 {
+            font-size: 1.1em;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--color-text-secondary); /* Texto de navegación secundario */
+            text-decoration: none;
+            transition: background-color 0.2s, color 0.2s;
+            font-size: 0.9em;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-nav a:hover {
+            background-color: rgba(255, 255, 255, 0.05); /* Hover sutil */
+            color: var(--color-text-primary);
+        }
+        
+        .sidebar-nav a.active {
+            background-color: rgba(0, 51, 255, 0.3); /* Acento azul semi-transparente */
+            border-left-color: var(--color-primary-light);
+            color: var(--color-text-primary);
+            font-weight: bold;
+        }
+
+        .main-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .header {
+            background-color: var(--color-background-panel); /* Header oscuro */
+            padding: 15px 30px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5em;
+            color: var(--color-text-primary); /* Título principal blanco */
+            margin: 0;
+        }
+
+        .user-menu {
+            color: var(--color-text-primary); /* Texto de usuario blanco */
+            font-size: 0.9em;
+            cursor: pointer;
+        }
+
+        .dashboard-content {
+            padding: 30px;
+            flex-grow: 1;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background-color: var(--color-background-panel); /* Tarjetas oscuras */
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            border-left: 5px solid var(--color-primary-light);
+            border: 1px solid var(--color-border-subtle);
+        }
+
+        .stat-card h3 {
+            font-size: 0.9em;
+            color: var(--color-text-secondary);
+            margin-top: 0;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .stat-card p {
+            font-size: 2em;
+            color: var(--color-text-primary); /* Valor KPI blanco */
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .progress-section {
+            background-color: var(--color-background-panel); /* Fondo oscuro */
+            padding: 25px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            margin-bottom: 30px;
+            border: 1px solid var(--color-border-subtle);
+        }
+
+        .progress-bar-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+
+        .progress-step {
+            flex-grow: 1;
+            text-align: center;
+            padding: 0 10px;
+            position: relative;
+        }
+
+        .progress-step .indicator {
+            width: 100%;
+            height: 8px;
+            background-color: var(--color-border-subtle); /* Fondo de barra más oscuro */
+            border-radius: 4px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .progress-step .fill {
+            height: 100%;
+            background-color: var(--color-primary-light);
+            transition: width 0.5s;
+        }
+        
+        .progress-step.error .fill {
+            background-color: var(--color-error);
+        }
+
+        .progress-step p {
+            font-size: 0.8em;
+            color: var(--color-text-secondary);
+            margin: 0;
+        }
+
+        /* Sección de Gráficos Adicionales */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .chart-card {
+            background-color: var(--color-background-panel); /* Fondo oscuro */
+            padding: 25px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--color-border-subtle);
+        }
+        
+        .chart-card h3 {
+            font-size: 1.1em;
+            color: var(--color-text-primary); /* Título blanco */
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: left;
+            width: 100%;
+        }
+
+        /* Simulación Gráfico de Pastel/Anillo (Doughnut Chart) */
+        .pie-chart-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--chart-color-2) 0% 55%, 
+                var(--chart-color-5) 55% 80%, 
+                var(--chart-color-1) 80% 100% 
+            );
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: auto;
+        }
+
+        .pie-chart-inner {
+            width: 100px;
+            height: 100px;
+            background-color: var(--color-background-panel); /* Fondo de tarjeta para el centro */
+            border-radius: 50%;
+        }
+
+        .pie-chart-legend {
+            margin-top: 15px;
+            text-align: left;
+            width: 100%;
+            font-size: 0.85em;
+            color: var(--color-text-secondary);
+        }
+
+        .pie-chart-legend div {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .pie-chart-legend span {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        /* Simulación Gráfico Treemap */
+        .treemap-container {
+            width: 100%;
+            height: 250px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .treemap-item {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--color-white);
+            font-size: 0.7em;
+            font-weight: bold;
+            padding: 5px;
+            box-sizing: border-box;
+            border-radius: 3px;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        /* Estilos de ejemplo para los items del Treemap (Mantener colores) */
+        .treemap-item:nth-child(1) { background-color: var(--chart-color-4); grid-column: span 2; grid-row: span 2; font-size: 1.2em;}
+        .treemap-item:nth-child(2) { background-color: var(--chart-color-6); }
+        .treemap-item:nth-child(3) { background-color: var(--chart-color-5); }
+        .treemap-item:nth-child(4) { background-color: var(--chart-color-2); }
+        .treemap-item:nth-child(5) { background-color: var(--chart-color-1); }
+        .treemap-item:nth-child(6) { background-color: var(--chart-color-7); }
+        .treemap-item:nth-child(7) { background-color: var(--chart-color-3); }
+        .treemap-item:nth-child(8) { background-color: #a0a0a0; }
+
+        /* Simulación Gráfico de Líneas - Estilo Complejo como el Referenciado */
+        .line-chart-card {
+            grid-column: span 2; 
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .line-chart-area {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            border-bottom: 1px solid var(--color-border-subtle);
+            border-left: 1px solid var(--color-border-subtle);
+            margin-top: 10px;
+        }
+
+        .line-chart-line {
+            position: absolute;
+            top: 50px; 
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, 
+                var(--chart-color-5) 0%, var(--chart-color-5) 20%, 
+                var(--chart-color-2) 20%, var(--chart-color-2) 40%, 
+                var(--chart-color-6) 40%, var(--chart-color-6) 60%, 
+                var(--chart-color-4) 60%, var(--chart-color-4) 80%,
+                var(--chart-color-7) 80%, var(--chart-color-7) 100%
+            );
+            opacity: 0.8;
+            clip-path: polygon(0 80%, 10% 60%, 20% 70%, 30% 50%, 40% 40%, 50% 30%, 60% 20%, 70% 30%, 80% 10%, 90% 20%, 100% 0%); 
+            transform: translateY(50px);
+        }
+
+        .line-chart-label {
+            position: absolute;
+            font-size: 0.7em;
+            color: var(--color-text-secondary);
+            bottom: -20px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .line-chart-label-y {
+            position: absolute;
+            font-size: 0.7em;
+            color: var(--color-text-secondary);
+            left: -35px;
+            top: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .line-chart-label-y span {
+            display: block;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-placeholder-sm"></div>
+            <h2>Sistema de Calidad</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="active">📊 Dashboard</a>
+            <a href="/dashboard/datos-crudos">1. Datos Crudos (Duplicidad)</a>
+            <a href="/dashboard/normalizacion">2. Normalización (Reglas)</a>
+            <a href="/dashboard/integracion">3. Integración de Fuentes</a>
+            <a href="/dashboard/alistamiento">4. Alistamiento (Edición)</a>
+            <a href="/dashboard/anonimizacion">5. Anonimización</a>
+            <a href="/dashboard/flujos">6. Editor de Flujos ETL</a>
+            <a href="/dashboard/usuarios">⚙️ Gestión Usuarios</a>
+        </nav>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="header">
+            <h1>Dashboard Principal</h1>
+            <div class="user-menu">
+                Funcionario A. (Programador Backend)
+            </div>
+        </div>
+
+        <div class="dashboard-content">
+
+            <div class="kpi-grid">
+                <div class="stat-card">
+                    <h3>Registros Crudos Totales</h3>
+                    <p>875,420</p>
+                    <span style="color: var(--color-text-secondary); font-size: 0.8em;">Última actualización: Hoy</span>
+                </div>
+                <div class="stat-card" style="border-left-color: var(--color-error);">
+                    <h3>% Duplicidad Inicial</h3>
+                    <p style="color: var(--color-error);">12.8%</p>
+                    <span style="color: var(--color-error); font-size: 0.8em;">¡Requiere tratamiento!</span>
+                </div>
+                <div class="stat-card" style="border-left-color: var(--color-success);">
+                    <h3>Completitud General</h3>
+                    <p style="color: var(--color-success);">89.5%</p>
+                    <span style="color: var(--color-success); font-size: 0.8em;">Meta 90%</span>
+                </div>
+                <div class="stat-card">
+                    <h3>Tasa de Colocación (Q3)</h3>
+                    <p>45%</p>
+                    <span style="color: var(--color-text-secondary); font-size: 0.8em;">Vacantes vs. Contratos</span>
+                </div>
+            </div>
+
+            <div class="progress-section">
+                <h2>Progreso del Flujo de Calidad (ETL)</h2>
+                
+                <div class="progress-bar-container">
+                    
+                    <div class="progress-step active">
+                        <p>1. Datos Crudos</p>
+                        <div class="indicator">
+                            <div class="fill" style="width: 100%;"></div>
+                        </div>
+                        <p style="font-weight: bold; color: var(--color-text-primary);">875K Registros</p>
+                    </div>
+
+                    <div class="progress-step error">
+                        <p>2. Normalización</p>
+                        <div class="indicator">
+                            <div class="fill" style="width: 85%;"></div>
+                        </div>
+                        <p style="color: var(--color-error);">85% Cumplimiento</p>
+                    </div>
+
+                    <div class="progress-step">
+                        <p>3. Integración</p>
+                        <div class="indicator">
+                            <div class="fill" style="width: 0%;"></div>
+                        </div>
+                        <p style="color: var(--color-text-secondary);">Pendiente</p>
+                    </div>
+
+                    <div class="progress-step">
+                        <p>4. Alistamiento</p>
+                        <div class="indicator">
+                            <div class="fill" style="width: 0%;"></div>
+                        </div>
+                        <p style="color: var(--color-text-secondary);">Pendiente</p>
+                    </div>
+
+                    <div class="progress-step">
+                        <p>5. Anonimización</p>
+                        <div class="indicator">
+                            <div class="fill" style="width: 0%;"></div>
+                        </div>
+                        <p style="color: var(--color-text-secondary);">Pendiente</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="charts-grid">
+                
+                <div class="chart-card">
+                    <h3>Ranking por Empleador (Colocaciones)</h3>
+                    <div class="treemap-container">
+                        <div class="treemap-item" style="background-color: var(--chart-color-4);">COMPENSAR (418.939)</div>
+                        <div class="treemap-item" style="background-color: var(--chart-color-6);">COLSUBSIDIO (385.026)</div>
+                        <div class="treemap-item" style="background-color: var(--chart-color-5);">COMFAMA (301.199)</div>
+                        <div class="treemap-item" style="background-color: var(--chart-color-2);">CAFAM (313.085)</div>
+                        <div class="treemap-item" style="background-color: var(--chart-color-1);">COFREM (122.065)</div>
+                        <div class="treemap-item" style="background-color: var(--chart-color-7);">COMFACASANARE (111.452)</div>
+                        <div class="treemap-item" style="background-color: var(--chart-color-3);">CAJASAN (115.338)</div>
+                        <div class="treemap-item" style="background-color: #a0a0a0;">Otros (50K)</div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Colocaciones por Sexo</h3>
+                    <div class="pie-chart-container">
+                        <div class="pie-chart-inner"></div>
+                    </div>
+                    <div class="pie-chart-legend">
+                        <div><span style="background-color: var(--chart-color-2);"></span> Hombres (55%)</div>
+                        <div><span style="background-color: var(--chart-color-5);"></span> Mujeres (25%)</div>
+                        <div><span style="background-color: var(--chart-color-1);"></span> Otro (20%)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-card line-chart-card">
+                <h3>Tendencia de Colocaciones en el Tiempo (2016 - 2024)</h3>
+                
+                <div class="line-chart-area">
+                    <div class="line-chart-line"></div>
+                    <div class="line-chart-label-y">
+                        <span>50K</span>
+                        <span>40K</span>
+                        <span>30K</span>
+                        <span>20K</span>
+                        <span>10K</span>
+                        <span>0</span>
+                    </div>
+                    <div class="line-chart-label">
+                        2016 - 2017 - 2018 - 2019 - 2020 - 2021 - 2022 - 2023 - 2024
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

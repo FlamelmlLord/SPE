@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Normalización | Sistema de Calidad de Datos</title>
+    <style>
+        /* Variables y estilos base heredados */
+        :root {
+            --color-primary-dark: #01033e;
+            --color-primary-light: #0033ff;
+            --color-background-soft: #f8f9fa;
+            --color-white: #ffffff;
+            --color-text-secondary: #6c757d;
+            --color-success: #4CAF50;
+            --color-error: #F44336;
+            --color-warning: #ffc107;
+            --font-family: Verdana, Geneva, Tahoma, sans-serif;
+            --chart-color-1: #807dfe;
+            --chart-color-2: #0033ff;
+            --chart-color-3: #9fbffc;
+            --chart-color-4: #01033e;
+        }
+
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 0;
+            background-color: var(--color-background-soft);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Estilos del Sidebar y Header (Iguales al Dashboard) */
+        .sidebar {
+            width: 250px; background-color: var(--color-primary-dark); color: var(--color-white); padding: 20px 0; flex-shrink: 0; display: flex; flex-direction: column; box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar-header {
+            text-align: center; padding: 0 20px 30px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 20px;
+        }
+        .logo-placeholder-sm {
+            display: block; width: 150px; height: 30px; margin: 0 auto 5px; background-image: url('logo-servicio-de-empleo.png'); background-size: contain; background-repeat: no-repeat; background-position: center; filter: invert(100%);
+        }
+        .sidebar h2 {
+            font-size: 1.1em; margin: 0; font-weight: 700;
+        }
+        .sidebar-nav a {
+            display: flex; align-items: center; padding: 12px 20px; color: var(--color-white); text-decoration: none; transition: background-color 0.2s, color 0.2s; font-size: 0.9em; border-left: 3px solid transparent;
+        }
+        .sidebar-nav a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar-nav a.active {
+            background-color: rgba(0, 51, 255, 0.5); border-left-color: var(--color-primary-light); font-weight: bold;
+        }
+        .main-container {
+            flex-grow: 1; display: flex; flex-direction: column; overflow-y: auto;
+        }
+        .header {
+            background-color: var(--color-white); padding: 15px 30px; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); display: flex; justify-content: space-between; align-items: center;
+        }
+        .header h1 {
+            font-size: 1.5em; color: var(--color-primary-dark); margin: 0;
+        }
+        .content {
+            padding: 30px; flex-grow: 1;
+        }
+        
+        /* Layout de la Vista 3 */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr; /* Tabla de Reglas y Panel de Creación/Métricas */
+            gap: 30px;
+        }
+
+        /* 1. Panel de Reglas (Tabla) */
+        .rules-table-panel {
+            background-color: var(--color-white);
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+        }
+
+        .rules-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .add-rule-button {
+            padding: 10px 15px;
+            background-color: var(--color-primary-light);
+            color: var(--color-white);
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+        th, td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+            color: var(--color-primary-dark);
+            text-transform: uppercase;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+        .status-badge.active { background-color: var(--color-success); color: var(--color-white); }
+        .status-badge.disabled { background-color: var(--color-text-secondary); color: var(--color-white); }
+        .status-badge.technical { background-color: var(--color-primary-light); color: var(--color-white); }
+
+        /* 2. Panel de Creación y Métricas */
+        .sidebar-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        /* Simulación de Formulario No-Code (rule-form.tsx) */
+        .rule-form-card {
+            background-color: var(--color-white);
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .rule-form-card input, .rule-form-card select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: var(--font-family);
+        }
+        .rule-form-card label {
+            display: block;
+            font-size: 0.9em;
+            color: var(--color-primary-dark);
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .save-button {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--color-primary-light);
+            color: var(--color-white);
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        
+        /* 3. Métricas de Cumplimiento (Gráfico de Barras) */
+        .compliance-card {
+            background-color: var(--color-white);
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .compliance-chart {
+            display: grid;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .compliance-item {
+            font-size: 0.8em;
+            color: var(--color-primary-dark);
+        }
+        .compliance-bar-wrapper {
+            background-color: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            height: 20px;
+            margin-top: 5px;
+            display: flex;
+        }
+        .compliance-bar-pass {
+            height: 100%;
+            background-color: var(--color-success);
+        }
+        .compliance-bar-fail {
+            height: 100%;
+            background-color: var(--color-error);
+        }
+
+        /* Botón de Ejecución */
+        .execution-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--color-primary-dark);
+            border-radius: 6px;
+            text-align: center;
+        }
+        .execute-button {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--color-warning);
+            color: var(--color-primary-dark);
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-placeholder-sm"></div>
+            <h2>Sistema de Calidad</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard">📊 Dashboard</a>
+            <a href="/dashboard/datos-crudos">1. Datos Crudos (Duplicidad)</a>
+            <a href="/dashboard/normalizacion" class="active">2. Normalización (Reglas)</a>
+            <a href="/dashboard/integracion">3. Integración de Fuentes</a>
+            <a href="/dashboard/alistamiento">4. Alistamiento (Edición)</a>
+            <a href="/dashboard/anonimizacion">5. Anonimización</a>
+            <a href="/dashboard/usuarios">⚙️ Gestión Usuarios</a>
+        </nav>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="header">
+            <h1>2. Normalización y Validación de Datos (Motor de Reglas)</h1>
+            <div class="user-menu">
+                Funcionario A. (Programador Backend)
+            </div>
+        </div>
+
+        <div class="content">
+
+            <div class="layout-grid">
+                
+                <div class="rules-table-panel">
+                    <div class="rules-toolbar">
+                        <h3>Reglas de Validación Activas (Vacantes)</h3>
+                        <button class="add-rule-button">+ Crear Nueva Regla</button>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre Regla</th>
+                                <th>Campo Aplicado</th>
+                                <th>Tipo</th>
+                                <th>Lógica</th>
+                                <th>Impacto (%)</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Validación NIT DIAN</td>
+                                <td>nit_prestador</td>
+                                <td><span class="status-badge technical">Técnica</span></td>
+                                <td>Dígito de Verificación (DV)</td>
+                                <td>99.9%</td>
+                                <td><span class="status-badge active">Activa</span></td>
+                                <td>Editar | Eliminar</td>
+                            </tr>
+                            <tr>
+                                <td>Salario Mínimo</td>
+                                <td>salario_ofrecido</td>
+                                <td><span class="status-badge active">Negocio</span></td>
+                                <td>&gt;= 950.000</td>
+                                <td>85.2%</td>
+                                <td><span class="status-badge active">Activa</span></td>
+                                <td>Editar | Eliminar</td>
+                            </tr>
+                            <tr>
+                                <td>Estandarización de Ciudad</td>
+                                <td>nom_ciudad</td>
+                                <td><span class="status-badge disabled">Codificación</span></td>
+                                <td>Mapeo (BOGT -> BOGOTA)</td>
+                                <td>-</td>
+                                <td><span class="status-badge disabled">Inactiva</span></td>
+                                <td>Activar | Eliminar</td>
+                            </tr>
+                            <tr>
+                                <td>Antigüedad Vacante</td>
+                                <td>fecha_creacion</td>
+                                <td><span class="status-badge active">Negocio</span></td>
+                                <td>&lt;= 60 días</td>
+                                <td>92.1%</td>
+                                <td><span class="status-badge active">Activa</span></td>
+                                <td>Editar | Eliminar</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="execution-panel">
+                        <button class="execute-button">APLICAR TODAS LAS REGLAS DE NORMALIZACIÓN</button>
+                    </div>
+                </div>
+
+                <div class="sidebar-panel">
+                    
+                    <div class="rule-form-card">
+                        <h3>Crear/Editar Regla</h3>
+                        <label for="rule-name">Nombre de la Regla:</label>
+                        <input type="text" id="rule-name" value="Validación NIT DIAN">
+
+                        <label for="rule-field">Campo a Aplicar:</label>
+                        <select id="rule-field">
+                            <option value="nit_prestador" selected>nit_prestador</option>
+                            <option value="salario_ofrecido">salario_ofrecido</option>
+                        </select>
+
+                        <label for="rule-logic">Lógica de Validación:</label>
+                        <select id="rule-logic">
+                            <option>&lt;</option>
+                            <option>&gt;</option>
+                            <option>=</option>
+                            <option selected>Dígito de Verificación</option>
+                        </select>
+                        
+                        <label for="rule-value">Valor de Referencia:</label>
+                        <input type="text" id="rule-value" placeholder="N/A (Cálculo automático)">
+
+                        <button class="save-button">Guardar Regla</button>
+                    </div>
+
+                    <div class="compliance-card">
+                        <h3>Métricas de Cumplimiento (Última Ejecución)</h3>
+                        
+                        <div class="compliance-chart">
+                            <div class="compliance-item">
+                                <p style="margin:0; font-weight: bold;">Validación NIT DIAN (99.9% OK)</p>
+                                <div class="compliance-bar-wrapper">
+                                    <div class="compliance-bar-pass" style="width: 99.9%;"></div>
+                                    <div class="compliance-bar-fail" style="width: 0.1%;"></div>
+                                </div>
+                            </div>
+                            <div class="compliance-item">
+                                <p style="margin:0; font-weight: bold;">Salario Mínimo (85.2% OK)</p>
+                                <div class="compliance-bar-wrapper">
+                                    <div class="compliance-bar-pass" style="width: 85.2%;"></div>
+                                    <div class="compliance-bar-fail" style="width: 14.8%;"></div>
+                                </div>
+                            </div>
+                            <div class="compliance-item">
+                                <p style="margin:0; font-weight: bold;">Antigüedad Vacante (92.1% OK)</p>
+                                <div class="compliance-bar-wrapper">
+                                    <div class="compliance-bar-pass" style="width: 92.1%;"></div>
+                                    <div class="compliance-bar-fail" style="width: 7.9%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
