@@ -9,5 +9,4 @@ export function exportToCSV(data: any[], filename: string) {
 }
 
 function convertToCSV(data: any[]): string {
-  // Implementación de conversión a CSV
 }
