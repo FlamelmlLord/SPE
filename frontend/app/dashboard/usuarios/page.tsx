@@ -278,10 +278,6 @@ export default function UsuariosPage() {
                   <p className="text-sm font-semibold text-gray-900">{usuarioActual.nombre}</p>
                 </div>
               </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">Estado</p>
-                {getEstadoBadge(usuarioActual.activo)}
-              </div>
             </div>
 
             {/* Columna 2: Información de Contacto */}
@@ -332,12 +328,6 @@ export default function UsuariosPage() {
                   <Clock className="w-4 h-4 text-gray-400" />
                   <p className="text-sm font-semibold text-green-700">{usuarioActual.ultimoAcceso}</p>
                 </div>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">Sesión Actual</p>
-                <Badge className="bg-green-100 text-green-800 text-xs">
-                  ● Activa
-                </Badge>
               </div>
             </div>
           </div>
